@@ -17,7 +17,7 @@ interface InfoProps {
 }
 
 interface Props {
-  user: string | null;
+  user: InfoProps | null;
   registerInfo: InfoProps;
   updateRegisterInfo: (info: InfoProps) => void;
   setUser: Dispatch<SetStateAction<null>>;
@@ -30,7 +30,7 @@ export const AuthContext = createContext<Props>({
   registerInfo: { name: "", email: "", password: "" },
   updateRegisterInfo: () => null,
   setUser: () => null,
-  user: "",
+  user: null,
   registerUser: (e: FormEvent<HTMLFormElement>) => null, 
   registerError: '',
   registerLoading: false
