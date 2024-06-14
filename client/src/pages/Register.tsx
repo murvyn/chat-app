@@ -3,7 +3,7 @@ import { Alert, Button, Col, Form, Row, Stack } from "react-bootstrap";
 import { AuthContext } from "../context/AuthContext";
 
 const Register = () => {
-  const { updateRegisterInfo, registerInfo, registerError, registerUser, registerLoading } =
+  const { updateRegisterInfo, registerInfo, registerError, registerUser, isRegisterLoading } =
     useContext(AuthContext);
   return (
     <>
@@ -45,7 +45,7 @@ const Register = () => {
               <Button variant="primary" type="submit">
                 Register
               </Button>
-              {registerLoading ? "Creating your account" : "Register"}
+              {isRegisterLoading ? "Creating your account" : "Register"}
               {registerError && (
                 <Alert variant="danger">
                   <p>{registerError}</p>

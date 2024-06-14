@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const user = require("./routes/userRoute");
+const chat = require("./routes/chatRoute");
 
 const app = express();
 require("dotenv").config();
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/api/users", user);
+app.use("/api/chats", chat);
 
 const port = process.env.PORT || 5000;
 const mongodb_uri = process.env.MONGODB_URI;
