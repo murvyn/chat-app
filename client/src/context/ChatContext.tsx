@@ -6,45 +6,19 @@ import {
   useState,
 } from "react";
 import { baseUrl, getRequest, postRequest } from "../utils/services";
+import { UserProps } from "./AuthContext";
 
-interface User {
+interface MessagesProps {
+  chatId: string;
+  text: string;
   _id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-  // chats: any[];
-  // messages: any[];
-  // friends: any[];
-  // requests: any[];
-  // blocked: any[];
-  // blockedBy: any[];
-  isOnline: boolean;
-  isTyping: boolean;
-  lastActive: string;
-  lastMessage: string;
-  lastMessageAt: string;
-  lastMessageSender: string;
-  lastMessageSenderId: string;
-  lastMessageSenderName: string;
-  lastMessageSenderAvatar: string;
-  lastMessageSenderIsOnline: boolean;
-  lastMessageSenderIsTyping: boolean;
-  lastMessageSenderLastActive: string;
-  lastMessageSenderLastMessage: string;
-  lastMessageSenderLastMessageAt: string;
-  lastMessageSenderLastMessageSender: string;
-  lastMessageSenderLastMessageSenderId: string;
+  senderId: string
+  createdAt: string
 }
 
-interface Chat {
+export interface UserChat {
   members: string[];
-}
-
-interface UserChat {
-  chat: Chat[];
+  _id: string;
 }
 interface Props {
   userChats: UserChat[] | null;
@@ -52,8 +26,17 @@ interface Props {
   userChatsError: string | null;
   potentialChats: UserChat[] | null;
   createChat: (firstId: string, secondId: string) => Promise<void>;
-  currentChat: Chat | null
-  updateCurrentChat: (chat: Chat) => void
+  currentChat: UserChat | null;
+  updateCurrentChat: (chat: UserChat) => void;
+  messages: MessagesProps[] | null;
+  isMessagesLoading: boolean;
+  messagesError: string;
+  sendTextMessage: (
+    textMessage: string,
+    sender: string,
+    currentChatId: string,
+    setTextMessage: (text: string) => void
+  ) => Promise<void>;
 }
 
 export const ChatContext = createContext<Props>({
@@ -61,9 +44,13 @@ export const ChatContext = createContext<Props>({
   userChats: null,
   userChatsError: null,
   potentialChats: null,
-  createChat: () => null,
+  createChat: () => Promise.resolve(),
   currentChat: null,
-  updateCurrentChat: () => null
+  updateCurrentChat: () => null,
+  messages: null,
+  isMessagesLoading: false,
+  messagesError: "",
+  sendTextMessage: () => Promise.resolve(),
 });
 
 export const ChatContextProvider = ({
@@ -71,17 +58,20 @@ export const ChatContextProvider = ({
   user,
 }: {
   children: ReactNode;
-  user: User;
+  user: UserProps;
 }) => {
   const [userChats, setUserChats] = useState<UserChat[] | null>(null);
   const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
   const [userChatsError, setUserChatsError] = useState(null);
   const [potentialChats, setPotentialChats] = useState(null);
-  const [currentChat, setCurrentChat] = useState(null);
-  const [messages, setMessages] = useState(null)
-  const [isMessagesLoading, setIsMessagesLoading] = useState(null)
-  const [messagesError, setMessagesError] = useState(null)
+  const [currentChat, setCurrentChat] = useState<UserChat | null>(null);
+  const [messages, setMessages] = useState<MessagesProps[] | null>(null);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState("");
+  const [sendTextMessageError, setSendTextMessageError] = useState("");
+  const [newMessage, setNewMessage] = useState<MessagesProps | null>(null);
 
+  console.log(sendTextMessageError, newMessage)
 
   useEffect(() => {
     const getUsers = async () => {
@@ -90,13 +80,13 @@ export const ChatContextProvider = ({
       if (response.error) {
         return console.log("Error fetching users", response);
       }
-      const pChats = response.filter((u: User) => {
+      const pChats = response.filter((u: UserProps) => {
         let isChatCreated = false;
 
         if (user?._id === u?._id) return false;
 
         if (userChats) {
-          isChatCreated = userChats?.some((chat: Chat) => {
+          isChatCreated = userChats?.some((chat: UserChat) => {
             return chat.members[0] === u._id || chat.members[1] === u._id;
           });
         }
@@ -127,29 +117,61 @@ export const ChatContextProvider = ({
     getUserChats();
   }, [user]);
 
-  const updateCurrentChat = useCallback((chat) => {
+  const updateCurrentChat = useCallback((chat: UserChat) => {
     setCurrentChat(chat);
-  }, [])
-  
+  }, []);
+
   useEffect(() => {
     const getMessages = async () => {
-        setIsMessagesLoading(true);
-        setMessagesError(null);
+      setIsMessagesLoading(true);
+      setMessagesError('');
 
-        const response = await getRequest(`${baseUrl}/messages/${currentChat?._id}`);
-        
+      const response = await getRequest(
+        `${baseUrl}/messages/${currentChat?._id}`
+      );
 
-        setIsMessagesLoading(false);
+      setIsMessagesLoading(false);
 
-        if (response.error) {
-          return setMessagesError(response);
-        }
+      if (response.error) {
+        return setMessagesError(response);
+      }
 
-        setMessages(response);
+      setMessages(response);
     };
     getMessages();
   }, [currentChat]);
 
+  const sendTextMessage = useCallback(
+    async (
+      textMessage: string,
+      sender: string,
+      currentChatId: string,
+      setTextMessage: (text: string) => void
+    ) => {
+      if (!textMessage) return console.log("You must type something..");
+
+      const response = await postRequest(
+        `${baseUrl}/messages`,
+        JSON.stringify({
+          chatId: currentChatId,
+          senderId: sender,
+          text: textMessage,
+        })
+      );
+
+      if (response.error) {
+        return setSendTextMessageError(response.message);
+      }
+
+      setNewMessage(response);
+      setMessages((prev: MessagesProps[] | null) =>
+        prev ? [...prev, response] : [response]
+      );
+      console.log(response);
+      setTextMessage("");
+    },
+    []
+  );
 
   const createChat = useCallback(async (firstId: string, secondId: string) => {
     const response = await postRequest(
@@ -160,7 +182,9 @@ export const ChatContextProvider = ({
       return console.log("Error creating chat", response);
     }
 
-    setUserChats((prev: any) => [...prev, response]);
+    setUserChats((prev: UserChat[] | null) =>
+      prev ? [...prev, response] : [response]
+    );
     console.log(firstId, secondId);
   }, []);
 
@@ -174,7 +198,8 @@ export const ChatContextProvider = ({
     updateCurrentChat,
     messages,
     isMessagesLoading,
-    messagesError
+    messagesError,
+    sendTextMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

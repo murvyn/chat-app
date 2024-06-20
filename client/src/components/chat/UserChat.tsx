@@ -1,16 +1,12 @@
 import { useFetchRecipientUser } from "../../hooks/useFetchRecipientUser";
 import { Stack } from "react-bootstrap";
 import avatar from "../../assets/avatar.svg";
+import type { UserChat } from "../../context/ChatContext";
+import type { UserProps } from "../../context/AuthContext";
 
 interface Props {
-  chat: {
-    members?: string[];
-  };
-  user: {
-    name: string;
-    email: string;
-    id: string
-  };
+  chat: UserChat
+  user: UserProps | null
 }
 
 const UserChat = ({ chat, user }: Props) => {

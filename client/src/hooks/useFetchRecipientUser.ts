@@ -1,21 +1,16 @@
 import { useEffect, useState } from "react";
 import { baseUrl, getRequest } from "../utils/services";
+import { UserChat } from "../context/ChatContext";
+import { UserProps } from "../context/AuthContext";
 
-export interface User {
-  name: string;
-  email: string;
-  id: string;
-}
 
 interface Props {
-  chat: {
-    members: string[];
-  };
-  user: User;
+  chat: UserChat | null
+  user: UserProps | null
 }
 
 export const useFetchRecipientUser = ({ chat, user }: Props) => {
-  const [recipientUser, setRecipientUser] = useState<User | null>(null);
+  const [recipientUser, setRecipientUser] = useState<UserProps | null>(null);
   const [error, setError] = useState('');
 
   const recipientId = chat?.members?.find((id) => {

@@ -16,13 +16,22 @@ interface InfoProps {
   password: string;
 }
 
+export interface UserProps{
+  name: string;
+  email: string;
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+  _id: string;
+}
+
 interface Props {
-  user: InfoProps | null;
+  user: UserProps | null;
   registerInfo: InfoProps;
   loginInfo: InfoProps;
   updateRegisterInfo: (info: InfoProps) => void;
   updateLoginInfo: (info: InfoProps) => void;
-  setUser: Dispatch<SetStateAction<null>>;
+  setUser: Dispatch<SetStateAction<UserProps | null>>;
   registerUser: (e: FormEvent<HTMLFormElement>) => Promise<void>;
   registerError: string;
   isRegisterLoading: boolean;
@@ -38,7 +47,7 @@ export const AuthContext = createContext<Props>({
   updateLoginInfo: () => null,
   setUser: () => null,
   user: null,
-  registerUser: () => null,
+  registerUser: () => Promise.resolve() ,
   registerError: "",
   isRegisterLoading: false,
   logoutUser: () => null,
@@ -49,12 +58,12 @@ export const AuthContext = createContext<Props>({
 });
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<UserProps | null>(null);
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState("");
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [registerInfo, setRegisterInfo] = useState({
+  const [registerInfo, setRegisterInfo] = useState<InfoProps>({
     name: "",
     email: "",
     password: "",
@@ -124,6 +133,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("User");
     setUser(null);
   }, []);
+
+  console.log(user)
 
   const value: Props = {
     user,
