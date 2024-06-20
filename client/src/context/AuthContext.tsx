@@ -134,8 +134,6 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   }, []);
 
-  console.log(user)
-
   const value: Props = {
     user,
     registerInfo,

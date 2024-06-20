@@ -19,7 +19,6 @@ export const useFetchRecipientUser = ({ chat, user }: Props) => {
   useEffect(() => {
     const getUser = async () => {
       if (!recipientId) {
-        console.log('No recipientId found');
         return;
       }
 

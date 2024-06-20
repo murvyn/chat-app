@@ -26,6 +26,8 @@ const ChatBox = () => {
       <p style={{ textAlign: "center", width: "100%" }}>Loading chat...</p>
     );
 
+
+
   return (
     <Stack gap={4} className="chat-box">
       <div className="chat-header">
@@ -33,13 +35,13 @@ const ChatBox = () => {
       </div>
       <Stack gap={3} className="messages">
         {messages &&
-          messages.map((message, index) => (
-            <Stack
+          messages.map((message, index) => {
+            return <Stack
               key={index}
               className={`${
                 (message?.senderId === user?._id)
-                  ? "message algin-self-start flex-grow-0"
-                  : " message self align-self-end flex-grow-0 "
+                  ? " message self align-self-end flex-grow-0"
+                  : " message algin-self-start flex-grow-0 "
               }`}
             >
               <span>{message?.text}</span>
@@ -47,7 +49,7 @@ const ChatBox = () => {
                 {moment(message?.createdAt).calendar()}
               </span>
             </Stack>
-          ))}
+})}
       </Stack>
       <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
         <InputEmoji
